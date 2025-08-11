@@ -1,0 +1,28 @@
+name: CustomerOnboarding
+description: A workflow to onboard new customers based on their profile.
+start_step: start
+transitions:
+  - from: "start"
+    to: "is_over_18_check"
+    rule: "pass"
+    fallback_to: "is_over_18_check"
+  - from: "is_over_18_check"
+    to: "is_premium_customer_check"
+    rule: "is_over_18"
+    fallback_to: "underage_rejected"
+  - from: "is_premium_customer_check"
+    to: "premium_onboarding"
+    rule: "is_premium_customer"
+    fallback_to: "standard_onboarding"
+  - from: "underage_rejected"
+    to: "end"
+    rule: "pass"
+    fallback_to: "end"
+  - from: "premium_onboarding"
+    to: "end"
+    rule: "pass"
+    fallback_to: "end"
+  - from: "standard_onboarding"
+    to: "end"
+    rule: "pass"
+    fallback_to: "end"

@@ -1,0 +1,16 @@
+# Workflow Engine Configuration
+
+# Directory paths
+workflows_dir=./workflows
+rules_dir=./rules
+states_dir=./states
+
+# Lua settings
+lua_pool_size=10
+
+# Logging
+log_level=info
+log_file=workflow.log
+
+# Timeout settings
+workflow_timeout_seconds=30
