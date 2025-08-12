@@ -2,10 +2,58 @@ package main
 
 import (
 	"context"
+	"encoding/csv"
 	"fmt"
 	"log"
+	"os"
+	"strconv"
 	"time"
 )
+
+type CustomerData struct {
+	Age          int
+	CustomerType string
+	Name         string
+}
+
+// ReadCustomerDataCSV reads customers from a CSV file with headers: age,customer_type,name
+func ReadCustomerDataCSV(filename string) ([]CustomerData, error) {
+	file, err := os.Open(filename)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open customer data file: %w", err)
+	}
+	defer file.Close()
+
+	reader := csv.NewReader(file)
+	rows, err := reader.ReadAll()
+	if err != nil {
+		return nil, fmt.Errorf("failed to read customer data file: %w", err)
+	}
+	if len(rows) < 2 {
+		return nil, fmt.Errorf("customer data file should have a header and at least one row")
+	}
+
+	var customers []CustomerData
+	for i, row := range rows {
+		if i == 0 {
+			// skip header
+			continue
+		}
+		if len(row) != 3 {
+			return nil, fmt.Errorf("row %d has %d columns, want 3", i+1, len(row))
+		}
+		age, err := strconv.Atoi(row[0])
+		if err != nil {
+			return nil, fmt.Errorf("invalid age at row %d: %v", i+1, err)
+		}
+		customers = append(customers, CustomerData{
+			Age:          age,
+			CustomerType: row[1],
+			Name:         row[2],
+		})
+	}
+	return customers, nil
+}
 
 func main() {
 	// 1. Load configuration
@@ -44,35 +92,11 @@ func main() {
 	engine.SetStorage(workflowStorage)
 	engine.SetStateStorage(stateStorage)
 
-	// 4. Create a workflow instance with initial data.
-	customerData1 := map[string]any{
-		"age":           25,
-		"customer_type": "premium",
-		"name":          "Alice",
-	}
-
-	customerData2 := map[string]any{
-		"age":           16,
-		"customer_type": "standard",
-		"name":          "Bob",
-	}
-
-	customerData3 := map[string]any{
-		"age":           30,
-		"customer_type": "standard",
-		"name":          "Charlie",
-	}
-
-	wfState1 := &WorkflowState{
-		Data: customerData1,
-	}
-
-	wfState2 := &WorkflowState{
-		Data: customerData2,
-	}
-
-	wfState3 := &WorkflowState{
-		Data: customerData3,
+	// 4. Read customer data from CSV file
+	customerFile := "customers.csv"
+	customers, err := ReadCustomerDataCSV(customerFile)
+	if err != nil {
+		log.Fatalf("Could not read customer data: %v", err)
 	}
 
 	// 5. Run the workflows with context for cancellation
@@ -80,24 +104,19 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	fmt.Println("--- Running Workflow for Alice ---")
-	err = engine.RunWorkflow(ctx, "CustomerOnboarding", wfState1)
-	if err != nil {
-		fmt.Printf("Error: %v\n", err)
+	for _, customer := range customers {
+		wfState := &WorkflowState{
+			Data: map[string]any{
+				"age":           customer.Age,
+				"customer_type": customer.CustomerType,
+				"name":          customer.Name,
+			},
+		}
+		fmt.Printf("--- Running Workflow for %s ---\n", customer.Name)
+		err = engine.RunWorkflow(ctx, "CustomerOnboarding", wfState)
+		if err != nil {
+			fmt.Printf("Error: %v\n", err)
+		}
+		fmt.Printf("Final step for %s: %s\n\n", customer.Name, wfState.CurrentStep)
 	}
-	fmt.Printf("Final step for Alice: %s\n\n", wfState1.CurrentStep)
-
-	fmt.Println("--- Running Workflow for Bob ---")
-	err = engine.RunWorkflow(ctx, "CustomerOnboarding", wfState2)
-	if err != nil {
-		fmt.Printf("Error: %v\n", err)
-	}
-	fmt.Printf("Final step for Bob: %s\n\n", wfState2.CurrentStep)
-
-	fmt.Println("--- Running Workflow for Charlie ---")
-	err = engine.RunWorkflow(ctx, "CustomerOnboarding", wfState3)
-	if err != nil {
-		fmt.Printf("Error: %v\n", err)
-	}
-	fmt.Printf("Final step for Charlie: %s\n\n", wfState3.CurrentStep)
 }
