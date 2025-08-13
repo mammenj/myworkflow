@@ -1,122 +1,368 @@
 package main
 
 import (
-	"context"
-	"encoding/csv"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
-	"strconv"
-	"time"
+	"path/filepath"
+	"strings"
+
+	"gopkg.in/yaml.v3"
 )
 
-type CustomerData struct {
-	Age          int
-	CustomerType string
-	Name         string
+// Workflow represents a sequence of steps.
+type Workflow struct {
+	Name        string       `json:"name" yaml:"name"`
+	Description string       `json:"description" yaml:"description"`
+	StartStep   string       `json:"start_step" yaml:"start_step"`
+	Transitions []Transition `json:"transitions" yaml:"transitions"`
 }
 
-// ReadCustomerDataCSV reads customers from a CSV file with headers: age,customer_type,name
-func ReadCustomerDataCSV(filename string) ([]CustomerData, error) {
-	file, err := os.Open(filename)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open customer data file: %w", err)
-	}
-	defer file.Close()
+// Transition defines a move from one step to another based on a rule.
+type Transition struct {
+	FromStep     string `json:"from" yaml:"from"`
+	ToStep       string `json:"to" yaml:"to"`
+	RuleName     string `json:"rule" yaml:"rule"`
+	FallbackStep string `json:"fallback_to" yaml:"fallback_to"`
+}
 
-	reader := csv.NewReader(file)
-	rows, err := reader.ReadAll()
-	if err != nil {
-		return nil, fmt.Errorf("failed to read customer data file: %w", err)
-	}
-	if len(rows) < 2 {
-		return nil, fmt.Errorf("customer data file should have a header and at least one row")
-	}
-
-	var customers []CustomerData
-	for i, row := range rows {
-		if i == 0 {
-			// skip header
-			continue
-		}
-		if len(row) != 3 {
-			return nil, fmt.Errorf("row %d has %d columns, want 3", i+1, len(row))
-		}
-		age, err := strconv.Atoi(row[0])
-		if err != nil {
-			return nil, fmt.Errorf("invalid age at row %d: %v", i+1, err)
-		}
-		customers = append(customers, CustomerData{
-			Age:          age,
-			CustomerType: row[1],
-			Name:         row[2],
-		})
-	}
-	return customers, nil
+// Rule represents a business rule
+type Rule struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Language    string `json:"language"`
+	Content     string `json:"content"`
 }
 
 func main() {
-	// 1. Load configuration
-	config, err := LoadConfig("config.txt")
+	// Create HTTP server
+	http.HandleFunc("/", homeHandler)
+	http.HandleFunc("/dashboard", dashboardHandler)
+	http.HandleFunc("/workflows", workflowsHandler)
+	http.HandleFunc("/rules", rulesHandler)
+	http.HandleFunc("/analytics", analyticsHandler)
+	http.HandleFunc("/settings", settingsHandler)
+	http.HandleFunc("/workflows/", workflowDetailHandler)
+	http.HandleFunc("/rules/", ruleEditorHandler)
+
+	// API endpoints
+	http.HandleFunc("/api/workflows", workflowsAPIHandler)
+	http.HandleFunc("/api/workflows/", workflowAPIHandler)
+	http.HandleFunc("/api/rules", rulesAPIHandler)
+	http.HandleFunc("/api/rules/", ruleAPIHandler)
+
+	// Static file serving
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
+
+	// Start server
+	port := "8080"
+	log.Printf("Server starting on port %s", port)
+	log.Fatal(http.ListenAndServe(":"+port, nil))
+}
+
+// Handlers for HTML pages
+func homeHandler(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/" {
+		http.ServeFile(w, r, "./static/404.html")
+		return
+	}
+	http.ServeFile(w, r, "./static/index.html")
+}
+
+func dashboardHandler(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "./static/index.html")
+}
+
+func workflowsHandler(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "./static/workflows.html")
+}
+
+func rulesHandler(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "./static/rules.html")
+}
+
+func analyticsHandler(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "./static/analytics.html")
+}
+
+func settingsHandler(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "./static/settings.html")
+}
+
+func workflowDetailHandler(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "./static/workflow-detail.html")
+}
+
+func ruleEditorHandler(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "./static/rule-editor.html")
+}
+
+// API handlers
+func workflowsAPIHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		getWorkflows(w, r)
+	case http.MethodPost:
+		createWorkflow(w, r)
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	}
+}
+
+func workflowAPIHandler(w http.ResponseWriter, r *http.Request) {
+	// Extract workflow name from URL path
+	path := strings.TrimPrefix(r.URL.Path, "/api/workflows/")
+	if path == "" {
+		http.Error(w, "Workflow name required", http.StatusBadRequest)
+		return
+	}
+
+	switch r.Method {
+	case http.MethodGet:
+		getWorkflow(w, r, path)
+	case http.MethodPut:
+		updateWorkflow(w, r, path)
+	case http.MethodDelete:
+		// According to requirements, users should not be able to delete workflows
+		http.Error(w, "Delete operation not allowed", http.StatusMethodNotAllowed)
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	}
+}
+
+func rulesAPIHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		getRules(w, r)
+	case http.MethodPost:
+		createRule(w, r)
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	}
+}
+
+func ruleAPIHandler(w http.ResponseWriter, r *http.Request) {
+	// Extract rule name from URL path
+	path := strings.TrimPrefix(r.URL.Path, "/api/rules/")
+	if path == "" {
+		http.Error(w, "Rule name required", http.StatusBadRequest)
+		return
+	}
+
+	switch r.Method {
+	case http.MethodGet:
+		getRule(w, r, path)
+	case http.MethodPut:
+		updateRule(w, r, path)
+	case http.MethodDelete:
+		// According to requirements, users should not be able to delete rules
+		http.Error(w, "Delete operation not allowed", http.StatusMethodNotAllowed)
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	}
+}
+
+// Implementation of API functions
+func getWorkflows(w http.ResponseWriter, r *http.Request) {
+	// Read workflow files from the workflows directory
+	workflowsDir := "./workflows"
+	files, err := ioutil.ReadDir(workflowsDir)
 	if err != nil {
-		log.Printf("Failed to load config, using defaults: %v", err)
-		config = &Config{
-			WorkflowsDir:           "./workflows",
-			RulesDir:               "./rules",
-			StatesDir:              "./states",
-			LuaPoolSize:            10,
-			WorkflowTimeoutSeconds: 30,
+		http.Error(w, "Failed to read workflows directory", http.StatusInternalServerError)
+		return
+	}
+
+	var workflows []Workflow
+	for _, file := range files {
+		if !file.IsDir() && (strings.HasSuffix(file.Name(), ".yaml") || strings.HasSuffix(file.Name(), ".yml")) {
+			filePath := filepath.Join(workflowsDir, file.Name())
+			data, err := ioutil.ReadFile(filePath)
+			if err != nil {
+				continue
+			}
+
+			var wf Workflow
+			if err := yaml.Unmarshal(data, &wf); err != nil {
+				continue
+			}
+			workflows = append(workflows, wf)
 		}
 	}
 
-	// 2. Initialize the modular engine with options from config
-	opts := EngineOptions{
-		WorkflowsDir: config.WorkflowsDir,
-		RulesDir:     config.RulesDir,
-		LuaPoolSize:  config.LuaPoolSize,
-		EventHandlers: []EventHandler{
-			&LoggingEventHandler{},
-			&ValidationErrorHandler{},
-		},
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(workflows)
+}
+
+func getWorkflow(w http.ResponseWriter, r *http.Request, name string) {
+	// Construct file path
+	fileName := fmt.Sprintf("%s.yml", strings.ToLower(strings.ReplaceAll(name, " ", "_")))
+	if _, err := os.Stat(filepath.Join("./workflows", fileName)); os.IsNotExist(err) {
+		// Try with .yaml extension
+		fileName = fmt.Sprintf("%s.yaml", strings.ToLower(strings.ReplaceAll(name, " ", "_")))
 	}
 
-	engine, err := NewWorkflowEngine(opts)
+	filePath := filepath.Join("./workflows", fileName)
+	data, err := ioutil.ReadFile(filePath)
 	if err != nil {
-		log.Fatalf("Failed to initialize workflow engine: %v", err)
+		http.Error(w, "Workflow not found", http.StatusNotFound)
+		return
 	}
 
-	// 3. Set up storage
-	workflowStorage := NewFileWorkflowStorage(config.WorkflowsDir)
-	stateStorage := NewFileStateStorage(config.StatesDir)
+	var wf Workflow
+	if err := yaml.Unmarshal(data, &wf); err != nil {
+		http.Error(w, "Failed to parse workflow", http.StatusInternalServerError)
+		return
+	}
 
-	engine.SetStorage(workflowStorage)
-	engine.SetStateStorage(stateStorage)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(wf)
+}
 
-	// 4. Read customer data from CSV file
-	customerFile := "customers.csv"
-	customers, err := ReadCustomerDataCSV(customerFile)
+func createWorkflow(w http.ResponseWriter, r *http.Request) {
+	var wf Workflow
+	if err := json.NewDecoder(r.Body).Decode(&wf); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	// Save workflow to file
+	fileName := fmt.Sprintf("%s.yml", strings.ToLower(strings.ReplaceAll(wf.Name, " ", "_")))
+	filePath := filepath.Join("./workflows", fileName)
+
+	data, err := yaml.Marshal(wf)
 	if err != nil {
-		log.Fatalf("Could not read customer data: %v", err)
+		http.Error(w, "Failed to marshal workflow", http.StatusInternalServerError)
+		return
 	}
 
-	// 5. Run the workflows with context for cancellation
-	timeout := time.Duration(config.WorkflowTimeoutSeconds) * time.Second
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
-
-	for _, customer := range customers {
-		wfState := &WorkflowState{
-			Data: map[string]any{
-				"age":           customer.Age,
-				"customer_type": customer.CustomerType,
-				"name":          customer.Name,
-			},
-		}
-		fmt.Printf("--- Running Workflow for %s ---\n", customer.Name)
-		err = engine.RunWorkflow(ctx, "CustomerOnboarding", wfState)
-		if err != nil {
-			fmt.Printf("Error: %v\n", err)
-		}
-		fmt.Printf("Final step for %s: %s\n\n", customer.Name, wfState.CurrentStep)
+	if err := ioutil.WriteFile(filePath, data, 0644); err != nil {
+		http.Error(w, "Failed to save workflow", http.StatusInternalServerError)
+		return
 	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(wf)
+}
+
+func updateWorkflow(w http.ResponseWriter, r *http.Request, name string) {
+	var wf Workflow
+	if err := json.NewDecoder(r.Body).Decode(&wf); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	// Save workflow to file
+	fileName := fmt.Sprintf("%s.yml", strings.ToLower(strings.ReplaceAll(name, " ", "_")))
+	filePath := filepath.Join("./workflows", fileName)
+
+	data, err := yaml.Marshal(wf)
+	if err != nil {
+		http.Error(w, "Failed to marshal workflow", http.StatusInternalServerError)
+		return
+	}
+
+	if err := ioutil.WriteFile(filePath, data, 0644); err != nil {
+		http.Error(w, "Failed to save workflow", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(wf)
+}
+
+func getRules(w http.ResponseWriter, r *http.Request) {
+	// Read rule files from the rules directory
+	rulesDir := "./rules"
+	files, err := ioutil.ReadDir(rulesDir)
+	if err != nil {
+		http.Error(w, "Failed to read rules directory", http.StatusInternalServerError)
+		return
+	}
+
+	var rules []Rule
+	for _, file := range files {
+		if !file.IsDir() && strings.HasSuffix(file.Name(), ".lua") {
+			filePath := filepath.Join(rulesDir, file.Name())
+			content, err := ioutil.ReadFile(filePath)
+			if err != nil {
+				continue
+			}
+
+			ruleName := strings.TrimSuffix(file.Name(), ".lua")
+			rules = append(rules, Rule{
+				Name:     ruleName,
+				Language: "Lua",
+				Content:  string(content),
+			})
+		}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(rules)
+}
+
+func getRule(w http.ResponseWriter, r *http.Request, name string) {
+	// Construct file path
+	fileName := fmt.Sprintf("%s.lua", name)
+	filePath := filepath.Join("./rules", fileName)
+
+	content, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		http.Error(w, "Rule not found", http.StatusNotFound)
+		return
+	}
+
+	rule := Rule{
+		Name:     name,
+		Language: "Lua",
+		Content:  string(content),
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(rule)
+}
+
+func createRule(w http.ResponseWriter, r *http.Request) {
+	var rule Rule
+	if err := json.NewDecoder(r.Body).Decode(&rule); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	// Save rule to file
+	fileName := fmt.Sprintf("%s.lua", rule.Name)
+	filePath := filepath.Join("./rules", fileName)
+
+	if err := ioutil.WriteFile(filePath, []byte(rule.Content), 0644); err != nil {
+		http.Error(w, "Failed to save rule", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(rule)
+}
+
+func updateRule(w http.ResponseWriter, r *http.Request, name string) {
+	var rule Rule
+	if err := json.NewDecoder(r.Body).Decode(&rule); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	// Save rule to file
+	fileName := fmt.Sprintf("%s.lua", name)
+	filePath := filepath.Join("./rules", fileName)
+
+	if err := ioutil.WriteFile(filePath, []byte(rule.Content), 0644); err != nil {
+		http.Error(w, "Failed to save rule", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(rule)
 }

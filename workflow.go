@@ -1,15 +1,15 @@
 package main
 
 // Workflow represents a sequence of steps.
-type Workflow struct {
-	Name        string       `yaml:"name"`
-	Description string       `yaml:"description"`
-	StartStep   string       `yaml:"start_step"`
-	Transitions []Transition `yaml:"transitions"`
+type Workflow1 struct {
+	Name        string        `yaml:"name"`
+	Description string        `yaml:"description"`
+	StartStep   string        `yaml:"start_step"`
+	Transitions []Transition1 `yaml:"transitions"`
 }
 
 // Transition defines a move from one step to another based on a rule.
-type Transition struct {
+type Transition1 struct {
 	FromStep     string `yaml:"from"`
 	ToStep       string `yaml:"to"`
 	RuleName     string `yaml:"rule"`
