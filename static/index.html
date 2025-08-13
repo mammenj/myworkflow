@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workflow Manager</title>
+    <!-- Tailwind CSS with DaisyUI -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/custom.css">
+    <style>
+        .sidebar {
+            transition: all 0.3s ease;
+        }
+        .content {
+            transition: all 0.3s ease;
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-base-100">
+    <!-- Navbar -->
+    <div class="navbar bg-base-200 shadow-md">
+        <div class="flex-1">
+            <a class="btn btn-ghost text-xl">
+                <i class="fas fa-project-diagram mr-2"></i>
+                Workflow Manager
+            </a>
+        </div>
+        <div class="flex-none">
+            <div class="dropdown dropdown-end">
+                <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
+                    <div class="w-10 rounded-full">
+                        <img alt="User avatar" src="https://ui-avatars.com/api/?name=User&background=random" />
+                    </div>
+                </div>
+                <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+                    <li><a><i class="fas fa-user mr-2"></i>Profile</a></li>
+                    <li><a><i class="fas fa-cog mr-2"></i>Settings</a></li>
+                    <li><a><i class="fas fa-sign-out-alt mr-2"></i>Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex">
+        <!-- Sidebar -->
+        <div class="sidebar w-64 min-h-screen bg-base-200 p-4">
+            <ul class="menu bg-base-200 w-full rounded-box">
+                <li>
+                    <a class="active" href="#" hx-get="/dashboard" hx-target="#content" hx-push-url="true">
+                        <i class="fas fa-home mr-2"></i>Dashboard
+                    </a>
+                </li>
+                <li>
+                    <a href="#" hx-get="/workflows" hx-target="#content" hx-push-url="true">
+                        <i class="fas fa-tasks mr-2"></i>Workflows
+                    </a>
+                </li>
+                <li>
+                    <a href="#" hx-get="/rules" hx-target="#content" hx-push-url="true">
+                        <i class="fas fa-code mr-2"></i>Rules
+                    </a>
+                </li>
+                <li>
+                    <a href="#" hx-get="/analytics" hx-target="#content" hx-push-url="true">
+                        <i class="fas fa-chart-bar mr-2"></i>Analytics
+                    </a>
+                </li>
+                <li>
+                    <a href="#" hx-get="/settings" hx-target="#content" hx-push-url="true">
+                        <i class="fas fa-cog mr-2"></i>Settings
+                    </a>
+                </li>
+            </ul>
+            
+            <div class="mt-8">
+                <div class="stats bg-base-200 shadow">
+                    <div class="stat">
+                        <div class="stat-title">Active Workflows</div>
+                        <div class="stat-value">12</div>
+                        <div class="stat-desc">↗︎ 4 (22%)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div id="content" class="content flex-1 p-6 bg-base-100">
+            <!-- Dashboard Content -->
+            <div class="mb-6">
+                <h1 class="text-3xl font-bold mb-2">Dashboard</h1>
+                <p class="text-base-content/70">Manage your workflows and business rules</p>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="card bg-base-100 shadow-xl card-hover">
+                    <div class="card-body">
+                        <h2 class="card-title">
+                            <i class="fas fa-tasks text-primary"></i>
+                            Workflows
+                        </h2>
+                        <p>Total workflows in the system</p>
+                        <div class="text-3xl font-bold">8</div>
+                        <div class="card-actions justify-end">
+                            <button class="btn btn-primary btn-sm" hx-get="/workflows" hx-target="#content" hx-push-url="true">
+                                View All
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card bg-base-100 shadow-xl card-hover">
+                    <div class="card-body">
+                        <h2 class="card-title">
+                            <i class="fas fa-code text-secondary"></i>
+                            Rules
+                        </h2>
+                        <p>Business rules defined</p>
+                        <div class="text-3xl font-bold">15</div>
+                        <div class="card-actions justify-end">
+                            <button class="btn btn-secondary btn-sm" hx-get="/rules" hx-target="#content" hx-push-url="true">
+                                View All
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card bg-base-100 shadow-xl card-hover">
+                    <div class="card-body">
+                        <h2 class="card-title">
+                            <i class="fas fa-bolt text-accent"></i>
+                            Executions
+                        </h2>
+                        <p>Workflow executions today</p>
+                        <div class="text-3xl font-bold">142</div>
+                        <div class="card-actions justify-end">
+                            <button class="btn btn-accent btn-sm" hx-get="/analytics" hx-target="#content" hx-push-url="true">
+                                View Details
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="card bg-base-100 shadow-xl mb-8">
+                <div class="card-body">
+                    <h2 class="card-title">
+                        <i class="fas fa-history mr-2"></i>
+                        Recent Activity
+                    </h2>
+                    <div class="overflow-x-auto">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Workflow</th>
+                                    <th>Action</th>
+                                    <th>User</th>
+                                    <th>Time</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Customer Onboarding</td>
+                                    <td>Rule Updated</td>
+                                    <td>John Doe</td>
+                                    <td>2 minutes ago</td>
+                                </tr>
+                                <tr>
+                                    <td>Order Processing</td>
+                                    <td>Workflow Executed</td>
+                                    <td>System</td>
+                                    <td>15 minutes ago</td>
+                                </tr>
+                                <tr>
+                                    <td>Payment Validation</td>
+                                    <td>Rule Created</td>
+                                    <td>Jane Smith</td>
+                                    <td>1 hour ago</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="card bg-gradient-to-r from-primary to-secondary text-primary-content shadow-xl">
+                    <div class="card-body">
+                        <h2 class="card-title">Create New Workflow</h2>
+                        <p>Create a new business workflow from scratch</p>
+                        <div class="card-actions justify-end">
+                            <button class="btn btn-outline btn-sm">Get Started</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card bg-gradient-to-r from-accent to-neutral text-accent-content shadow-xl">
+                    <div class="card-body">
+                        <h2 class="card-title">Add New Rule</h2>
+                        <p>Define a new business rule in Lua</p>
+                        <div class="card-actions justify-end">
+                            <button class="btn btn-outline btn-sm">Create Rule</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer footer-center p-6 bg-base-200 text-base-content">
+        <div>
+            <p>© 2025 Workflow Manager - All rights reserved</p>
+        </div>
+    </footer>
+    
+    <!-- Custom JS -->
+    <script src="/static/js/custom.js"></script>
+</body>
+</html>

@@ -1,0 +1,126 @@
+<div>
+    <div class=\"mb-6\">
+        <h1 class=\"text-3xl font-bold mb-2\">Settings</h1>
+        <p class=\"text-base-content/70\">Configure your workflow manager preferences</p>
+    </div>
+
+    <div class=\"grid grid-cols-1 lg:grid-cols-3 gap-6\">
+        <!-- Settings Navigation -->
+        <div class=\"lg:col-span-1\">
+            <div class=\"card bg-base-100 shadow-xl\">
+                <div class=\"card-body\">
+                    <ul class=\"menu bg-base-100 w-full\">
+                        <li><a class=\"active\"><i class=\"fas fa-cog mr-2\"></i>General</a></li>
+                        <li><a><i class=\"fas fa-database mr-2\"></i>Storage</a></li>
+                        <li><a><i class=\"fas fa-shield-alt mr-2\"></i>Security</a></li>
+                        <li><a><i class=\"fas fa-bell mr-2\"></i>Notifications</a></li>
+                        <li><a><i class=\"fas fa-user mr-2\"></i>Account</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Content -->
+        <div class=\"lg:col-span-2\">
+            <div class=\"card bg-base-100 shadow-xl\">
+                <div class=\"card-body\">
+                    <h2 class=\"card-title mb-6\">
+                        <i class=\"fas fa-cog mr-2\"></i>
+                        General Settings
+                    </h2>
+
+                    <form>
+                        <!-- Workflow Settings -->
+                        <div class=\"mb-8\">
+                            <h3 class=\"text-lg font-semibold mb-4\">Workflow Settings</h3>
+                            <div class=\"form-control mb-4\">
+                                <label class=\"label\">
+                                    <span class=\"label-text\">Default Timeout (seconds)</span>
+                                </label>
+                                <input type=\"number\" placeholder=\"30\" class=\"input input-bordered\" value=\"30\" />
+                            </div>
+                            <div class=\"form-control mb-4\">
+                                <label class=\"label\">
+                                    <span class=\"label-text\">Max Concurrent Executions</span>
+                                </label>
+                                <input type=\"number\" placeholder=\"100\" class=\"input input-bordered\" value=\"100\" />
+                            </div>
+                            <div class=\"form-control mb-4\">
+                                <label class=\"label\">
+                                    <span class=\"label-text\">Auto-save Workflows</span>
+                                </label>
+                                <input type=\"checkbox\" class=\"toggle toggle-primary\" checked />
+                            </div>
+                        </div>
+
+                        <!-- Rule Settings -->
+                        <div class=\"mb-8\">
+                            <h3 class=\"text-lg font-semibold mb-4\">Rule Settings</h3>
+                            <div class=\"form-control mb-4\">
+                                <label class=\"label\">
+                                    <span class=\"label-text\">Lua State Pool Size</span>
+                                </label>
+                                <input type=\"number\" placeholder=\"10\" class=\"input input-bordered\" value=\"10\" />
+                            </div>
+                            <div class=\"form-control mb-4\">
+                                <label class=\"label\">
+                                    <span class=\"label-text\">Rule Cache TTL (minutes)</span>
+                                </label>
+                                <input type=\"number\" placeholder=\"5\" class=\"input input-bordered\" value=\"5\" />
+                            </div>
+                            <div class=\"form-control mb-4\">
+                                <label class=\"label\">
+                                    <span class=\"label-text\">Enable Rule Versioning</span>
+                                </label>
+                                <input type=\"checkbox\" class=\"toggle toggle-primary\" checked />
+                            </div>
+                        </div>
+
+                        <!-- UI Settings -->
+                        <div class=\"mb-8\">
+                            <h3 class=\"text-lg font-semibold mb-4\">UI Settings</h3>
+                            <div class=\"form-control mb-4\">
+                                <label class=\"label\">
+                                    <span class=\"label-text\">Theme</span>
+                                </label>
+                                <select class=\"select select-bordered\">
+                                    <option>Light</option>
+                                    <option>Dark</option>
+                                    <option>System</option>
+                                </select>
+                            </div>
+                            <div class=\"form-control mb-4\">
+                                <label class=\"label\">
+                                    <span class=\"label-text\">Language</span>
+                                </label>
+                                <select class=\"select select-bordered\">
+                                    <option>English</option>
+                                    <option>Spanish</option>
+                                    <option>French</option>
+                                    <option>German</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class=\"flex justify-end gap-4\">
+                            <button type=\"button\" class=\"btn btn-outline\">
+                                <i class=\"fas fa-undo mr-2\"></i>Reset
+                            </button>
+                            <button type=\"button\" class=\"btn btn-primary\" onclick=\"saveSettings()\">
+                                <i class=\"fas fa-save mr-2\"></i>Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function saveSettings() {
+        // In a real implementation, this would save the settings to the server
+        alert('Settings saved successfully!\\nIn a real implementation, this would save the settings to the server.');
+    }
+</script>

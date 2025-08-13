@@ -1,0 +1,86 @@
+/* Custom styles for the workflow manager */
+
+/* Sidebar styling */
+.sidebar {
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Card hover effects */
+.card-hover {
+  transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Workflow visualization */
+.workflow-node {
+  transition: all 0.2s ease;
+}
+
+.workflow-node:hover {
+  transform: scale(1.05);
+}
+
+.workflow-connection {
+  stroke: #4f46e5;
+  stroke-width: 2;
+  fill: none;
+}
+
+/* Code editor styling */
+.code-editor {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Form styling */
+.form-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+}
+
+/* Button transitions */
+.btn {
+  transition: all 0.2s ease;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+}
+
+/* Modal animations */
+.modal-box {
+  animation: modal-pop 0.2s ease-out;
+}
+
+@keyframes modal-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%;
+    height: auto;
+    min-height: 0;
+  }
+  
+  .content {
+    margin-left: 0;
+  }
+  
+  .stats-vertical {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+}

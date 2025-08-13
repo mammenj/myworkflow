@@ -1,0 +1,198 @@
+<div>
+    <div class="mb-6">
+        <a href="#" class="btn btn-ghost btn-sm mb-4" hx-get="/rules" hx-target="#content" hx-push-url="true">
+            <i class="fas fa-arrow-left mr-2"></i>Back to Rules
+        </a>
+        <div class="flex justify-between items-start">
+            <div>
+                <h1 class="text-3xl font-bold mb-2">is_premium_customer</h1>
+                <p class="text-base-content/70">Check if the customer has a premium account type.</p>
+                <div class="flex items-center mt-2">
+                    <div class="badge badge-primary mr-2">Lua</div>
+                    <div class="text-sm mr-4"><i class="fas fa-code-branch mr-1"></i> Used in 5 workflows</div>
+                    <div class="text-sm"><i class="fas fa-history mr-1"></i> Last modified: 1 week ago</div>
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <button class="btn btn-outline" onclick="testRule()">
+                    <i class="fas fa-vial mr-2"></i>Test Rule
+                </button>
+                <button class="btn btn-primary" onclick="saveRule()">
+                    <i class="fas fa-save mr-2"></i>Save Rule
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rule Editor -->
+    <div class="card bg-base-100 shadow-xl mb-8">
+        <div class="card-body p-0">
+            <div class="tabs tabs-bordered w-full">
+                <button class="tab tab-active" onclick="switchTab('editor')">Editor</button>
+                <button class="tab" onclick="switchTab('test')">Test</button>
+                <button class="tab" onclick="switchTab('history')">History</button>
+            </div>
+            
+            <!-- Editor Tab -->
+            <div id="editor-tab" class="p-6">
+                <div class="form-control mb-4">
+                    <label class="label">
+                        <span class="label-text">Rule Description</span>
+                    </label>
+                    <input type="text" placeholder="Enter rule description" value="Check if the customer has a premium account type." class="input input-bordered" />
+                </div>
+                
+                <div class="form-control mb-4">
+                    <label class="label">
+                        <span class="label-text">Rule Code (Lua)</span>
+                    </label>
+                    <div class="mockup-code bg-base-200">
+                        <pre data-prefix="1"><code>function check(data)</code></pre>
+                        <pre data-prefix="2"><code>    -- The engine can pass arbitrary data.</code></pre>
+                        <pre data-prefix="3"><code>    local customer_type = data.customer_type</code></pre>
+                        <pre data-prefix="4"><code>    return customer_type == "premium"</code></pre>
+                        <pre data-prefix="5"><code>end</code></pre>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info shadow-lg mb-4">
+                    <div>
+                        <i class="fas fa-info-circle"></i>
+                        <span>Rules must implement a <code>check(data)</code> function that returns a boolean value.</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Test Tab -->
+            <div id="test-tab" class="p-6 hidden">
+                <h3 class="text-lg font-semibold mb-4">Test Rule</h3>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div>
+                        <div class="form-control mb-4">
+                            <label class="label">
+                                <span class="label-text">Input Data (JSON)</span>
+                            </label>
+                            <textarea class="textarea textarea-bordered font-mono" rows="8">{
+  "customer_type": "premium",
+  "age": 25,
+  "name": "Alice"
+}</textarea>
+                        </div>
+                        <button class="btn btn-primary" onclick="runTest()">
+                            <i class="fas fa-play mr-2"></i>Run Test
+                        </button>
+                    </div>
+                    <div>
+                        <div class="form-control mb-4">
+                            <label class="label">
+                                <span class="label-text">Test Result</span>
+                            </label>
+                            <div class="bg-base-200 rounded-lg p-4 min-h-32">
+                                <p class="text-center text-base-content/50">Click "Run Test" to see results</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- History Tab -->
+            <div id="history-tab" class="p-6 hidden">
+                <h3 class="text-lg font-semibold mb-4">Revision History</h3>
+                <div class="overflow-x-auto">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Revision</th>
+                                <th>Date</th>
+                                <th>User</th>
+                                <th>Description</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>v1.3</td>
+                                <td>2025-08-10</td>
+                                <td>John Doe</td>
+                                <td>Optimized performance</td>
+                                <td>
+                                    <button class="btn btn-xs btn-outline">View</button>
+                                    <button class="btn btn-xs btn-outline ml-2">Restore</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>v1.2</td>
+                                <td>2025-07-22</td>
+                                <td>Jane Smith</td>
+                                <td>Fixed edge case</td>
+                                <td>
+                                    <button class="btn btn-xs btn-outline">View</button>
+                                    <button class="btn btn-xs btn-outline ml-2">Restore</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>v1.1</td>
+                                <td>2025-07-15</td>
+                                <td>John Doe</td>
+                                <td>Initial implementation</td>
+                                <td>
+                                    <button class="btn btn-xs btn-outline">View</button>
+                                    <button class="btn btn-xs btn-outline ml-2">Restore</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Usage -->
+    <div class="card bg-base-100 shadow-xl mb-8">
+        <div class="card-body">
+            <h2 class="card-title">
+                <i class="fas fa-project-diagram mr-2"></i>
+                Rule Usage
+            </h2>
+            <p class="mb-4">This rule is used in the following workflows:</p>
+            <div class="flex flex-wrap gap-2">
+                <div class="badge badge-lg badge-primary">Customer Onboarding</div>
+                <div class="badge badge-lg badge-secondary">Premium Account Setup</div>
+                <div class="badge badge-lg badge-accent">Subscription Management</div>
+                <div class="badge badge-lg badge-neutral">Account Verification</div>
+                <div class="badge badge-lg badge-info">Payment Processing</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function switchTab(tab) {
+        // Hide all tabs
+        document.getElementById('editor-tab').classList.add('hidden');
+        document.getElementById('test-tab').classList.add('hidden');
+        document.getElementById('history-tab').classList.add('hidden');
+        
+        // Show selected tab
+        document.getElementById(tab + '-tab').classList.remove('hidden');
+        
+        // Update tab buttons
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('tab-active'));
+        event.target.classList.add('tab-active');
+    }
+    
+    function saveRule() {
+        // In a real implementation, this would save the rule to the server
+        alert('Rule saved successfully!\nIn a real implementation, this would save the rule to the server.');
+    }
+    
+    function testRule() {
+        // Switch to test tab
+        switchTab('test');
+    }
+    
+    function runTest() {
+        // In a real implementation, this would run the test against the server
+        alert('Test executed successfully!\nIn a real implementation, this would run the test against the server.');
+    }
+</script>

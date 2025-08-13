@@ -1,0 +1,202 @@
+<div>
+    <div class="mb-6 flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold mb-2">Rules</h1>
+            <p class="text-base-content/70">Manage your business rules</p>
+        </div>
+        <button class="btn btn-primary" onclick="document.getElementById('create-rule-modal').showModal()">
+            <i class="fas fa-plus mr-2"></i>New Rule
+        </button>
+    </div>
+
+    <!-- Rules Filters -->
+    <div class="flex flex-wrap gap-4 mb-6">
+        <div class="form-control">
+            <label class="label">
+                <span class="label-text">Search</span>
+            </label>
+            <input type="text" placeholder="Search rules..." class="input input-bordered w-full max-w-xs" />
+        </div>
+        <div class="form-control">
+            <label class="label">
+                <span class="label-text">Type</span>
+            </label>
+            <select class="select select-bordered w-full max-w-xs">
+                <option>All Types</option>
+                <option>Lua</option>
+                <option>JavaScript</option>
+                <option>Python</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Rules Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <!-- Rule Card 1 -->
+        <div class="card bg-base-100 shadow-xl card-hover">
+            <div class="card-body">
+                <h2 class="card-title">
+                    <i class="fas fa-user-check text-primary"></i>
+                    is_over_18
+                    <div class="badge badge-primary">Lua</div>
+                </h2>
+                <p>Check if the customer is over 18 years old based on their age field.</p>
+                <div class="flex justify-between items-center mt-4">
+                    <div class="text-sm">
+                        <span class="font-semibold">Used in:</span> 3 workflows
+                    </div>
+                    <div class="text-sm">
+                        <span class="font-semibold">Last Modified:</span> 2 days ago
+                    </div>
+                </div>
+                <div class="card-actions justify-end mt-4">
+                    <button class="btn btn-outline btn-sm" hx-get="/rules/is_over_18" hx-target="#content" hx-push-url="true">
+                        <i class="fas fa-eye mr-1"></i>View
+                    </button>
+                    <button class="btn btn-primary btn-sm" onclick="editRule('is_over_18')">
+                        <i class="fas fa-edit mr-1"></i>Edit
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rule Card 2 -->
+        <div class="card bg-base-100 shadow-xl card-hover">
+            <div class="card-body">
+                <h2 class="card-title">
+                    <i class="fas fa-crown text-secondary"></i>
+                    is_premium_customer
+                    <div class="badge badge-secondary">Lua</div>
+                </h2>
+                <p>Check if the customer has a premium account type.</p>
+                <div class="flex justify-between items-center mt-4">
+                    <div class="text-sm">
+                        <span class="font-semibold">Used in:</span> 5 workflows
+                    </div>
+                    <div class="text-sm">
+                        <span class="font-semibold">Last Modified:</span> 1 week ago
+                    </div>
+                </div>
+                <div class="card-actions justify-end mt-4">
+                    <button class="btn btn-outline btn-sm" hx-get="/rules/is_premium_customer" hx-target="#content" hx-push-url="true">
+                        <i class="fas fa-eye mr-1"></i>View
+                    </button>
+                    <button class="btn btn-primary btn-sm" onclick="editRule('is_premium_customer')">
+                        <i class="fas fa-edit mr-1"></i>Edit
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rule Card 3 -->
+        <div class="card bg-base-100 shadow-xl card-hover">
+            <div class="card-body">
+                <h2 class="card-title">
+                    <i class="fas fa-wallet text-accent"></i>
+                    has_sufficient_balance
+                    <div class="badge badge-accent">Lua</div>
+                </h2>
+                <p>Check if the customer has sufficient balance for the transaction.</p>
+                <div class="flex justify-between items-center mt-4">
+                    <div class="text-sm">
+                        <span class="font-semibold">Used in:</span> 2 workflows
+                    </div>
+                    <div class="text-sm">
+                        <span class="font-semibold">Last Modified:</span> 3 days ago
+                    </div>
+                </div>
+                <div class="card-actions justify-end mt-4">
+                    <button class="btn btn-outline btn-sm" hx-get="/rules/has_sufficient_balance" hx-target="#content" hx-push-url="true">
+                        <i class="fas fa-eye mr-1"></i>View
+                    </button>
+                    <button class="btn btn-primary btn-sm" onclick="editRule('has_sufficient_balance')">
+                        <i class="fas fa-edit mr-1"></i>Edit
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rule Stats -->
+    <div class="stats stats-vertical lg:stats-horizontal shadow mb-8">
+        <div class="stat">
+            <div class="stat-figure text-primary">
+                <i class="fas fa-code fa-2x"></i>
+            </div>
+            <div class="stat-title">Total Rules</div>
+            <div class="stat-value">15</div>
+            <div class="stat-desc">↗︎ 3 (20%) this month</div>
+        </div>
+
+        <div class="stat">
+            <div class="stat-figure text-secondary">
+                <i class="fas fa-file-code fa-2x"></i>
+            </div>
+            <div class="stat-title">Lua Rules</div>
+            <div class="stat-value">12</div>
+            <div class="stat-desc">80% of all rules</div>
+        </div>
+
+        <div class="stat">
+            <div class="stat-figure text-accent">
+                <i class="fas fa-bolt fa-2x"></i>
+            </div>
+            <div class="stat-title">Executions Today</div>
+            <div class="stat-value">842</div>
+            <div class="stat-desc">↗︎ 120 (16%) today</div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Rule Modal -->
+<dialog id="create-rule-modal" class="modal">
+    <div class="modal-box">
+        <form method="dialog">
+            <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+        </form>
+        <h3 class="font-bold text-lg mb-4">Create New Rule</h3>
+        <form>
+            <div class="form-control mb-4">
+                <label class="label">
+                    <span class="label-text">Rule Name</span>
+                </label>
+                <input type="text" placeholder="Enter rule name" class="input input-bordered" />
+            </div>
+            <div class="form-control mb-4">
+                <label class="label">
+                    <span class="label-text">Description</span>
+                </label>
+                <textarea placeholder="Enter rule description" class="textarea textarea-bordered" rows="3"></textarea>
+            </div>
+            <div class="form-control mb-4">
+                <label class="label">
+                    <span class="label-text">Language</span>
+                </label>
+                <select class="select select-bordered">
+                    <option>Lua</option>
+                    <option>JavaScript</option>
+                    <option>Python</option>
+                </select>
+            </div>
+            <div class="modal-action">
+                <form method="dialog">
+                    <button class="btn btn-outline mr-2">Cancel</button>
+                    <button class="btn btn-primary" onclick="createRule()">Create</button>
+                </form>
+            </div>
+        </form>
+    </div>
+</dialog>
+
+<script>
+    function editRule(id) {
+        // In a real implementation, this would open an editor for the rule
+        alert('Editing rule: ' + id + '\nIn a real implementation, this would open the rule editor.');
+    }
+
+    function createRule() {
+        // In a real implementation, this would create a new rule
+        alert('Creating new rule...\nIn a real implementation, this would create the rule on the server.');
+        document.getElementById('create-rule-modal').close();
+    }
+</script>

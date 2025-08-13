@@ -1,0 +1,150 @@
+<div>
+    <div class="mb-6">
+        <a href="#" class="btn btn-ghost btn-sm mb-4" hx-get="/workflows" hx-target="#content" hx-push-url="true">
+            <i class="fas fa-arrow-left mr-2"></i>Back to Workflows
+        </a>
+        <div class="flex justify-between items-start">
+            <div>
+                <h1 class="text-3xl font-bold mb-2">Customer Onboarding</h1>
+                <p class="text-base-content/70">Workflow for onboarding new customers based on their profile and verification status.</p>
+                <div class="flex items-center mt-2">
+                    <div class="badge badge-primary mr-2">Active</div>
+                    <div class="text-sm mr-4"><i class="fas fa-code-branch mr-1"></i> 6 Steps</div>
+                    <div class="text-sm"><i class="fas fa-ruler mr-1"></i> 4 Rules</div>
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="editWorkflowDetail()">
+                <i class="fas fa-edit mr-2"></i>Edit Workflow
+            </button>
+        </div>
+    </div>
+
+    <!-- Workflow Visualization -->
+    <div class="card bg-base-100 shadow-xl mb-8">
+        <div class="card-body">
+            <h2 class="card-title">
+                <i class="fas fa-project-diagram mr-2"></i>
+                Workflow Visualization
+            </h2>
+            <div class="bg-base-200 rounded-lg p-6 min-h-96 flex items-center justify-center">
+                <div class="text-center">
+                    <i class="fas fa-project-diagram fa-3x mb-4 text-base-content/30"></i>
+                    <p class="text-base-content/50">Workflow visualization would be displayed here</p>
+                    <p class="text-sm text-base-content/30 mt-2">In a real implementation, this would show a visual representation of the workflow steps and transitions</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Workflow Details -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <!-- Steps -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title">
+                    <i class="fas fa-shoe-prints mr-2"></i>
+                    Workflow Steps
+                </h2>
+                <div class="steps steps-vertical">
+                    <div class="step step-primary">start</div>
+                    <div class="step step-primary">is_over_18_check</div>
+                    <div class="step step-primary">is_premium_customer_check</div>
+                    <div class="step step-primary">premium_onboarding</div>
+                    <div class="step step-primary">standard_onboarding</div>
+                    <div class="step step-primary">end</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transitions -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title">
+                    <i class="fas fa-exchange-alt mr-2"></i>
+                    Transitions
+                </h2>
+                <div class="overflow-x-auto">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>From Step</th>
+                                <th>To Step</th>
+                                <th>Rule</th>
+                                <th>Fallback</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>start</td>
+                                <td>is_over_18_check</td>
+                                <td>pass</td>
+                                <td>is_over_18_check</td>
+                            </tr>
+                            <tr>
+                                <td>is_over_18_check</td>
+                                <td>is_premium_customer_check</td>
+                                <td>is_over_18</td>
+                                <td>underage_rejected</td>
+                            </tr>
+                            <tr>
+                                <td>is_premium_customer_check</td>
+                                <td>premium_onboarding</td>
+                                <td>is_premium_customer</td>
+                                <td>standard_onboarding</td>
+                            </tr>
+                            <tr>
+                                <td>underage_rejected</td>
+                                <td>end</td>
+                                <td>pass</td>
+                                <td>end</td>
+                            </tr>
+                            <tr>
+                                <td>premium_onboarding</td>
+                                <td>end</td>
+                                <td>pass</td>
+                                <td>end</td>
+                            </tr>
+                            <tr>
+                                <td>standard_onboarding</td>
+                                <td>end</td>
+                                <td>pass</td>
+                                <td>end</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Metadata -->
+    <div class="card bg-base-100 shadow-xl mb-8">
+        <div class="card-body">
+            <h2 class="card-title">
+                <i class="fas fa-info-circle mr-2"></i>
+                Workflow Metadata
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <h3 class="font-semibold mb-2">Created</h3>
+                    <p>2025-07-15 14:30:22</p>
+                </div>
+                <div>
+                    <h3 class="font-semibold mb-2">Last Modified</h3>
+                    <p>2025-08-10 09:15:47</p>
+                </div>
+                <div>
+                    <h3 class="font-semibold mb-2">Executions</h3>
+                    <p>1,242</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function editWorkflowDetail() {
+        // In a real implementation, this would open the workflow editor
+        alert('Editing workflow...\nIn a real implementation, this would open the workflow editor.');
+    }
+</script>
