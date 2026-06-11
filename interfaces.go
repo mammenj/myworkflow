@@ -23,6 +23,13 @@ type StateStorage interface {
 	LoadState(ctx context.Context, workflowName string, stateID string) (*WorkflowState, error)
 }
 
+// RuleStorage defines the interface for rule persistence
+type RuleStorage interface {
+	SaveRule(ctx context.Context, rule Rule) error
+	LoadRule(ctx context.Context, name string) (*Rule, error)
+	ListRules(ctx context.Context) ([]Rule, error)
+}
+
 // EventHandler defines the interface for workflow events
 type EventHandler interface {
 	OnWorkflowStart(ctx context.Context, workflowName string, state *WorkflowState) error

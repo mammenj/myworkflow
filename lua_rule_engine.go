@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
+	"sync"
 
 	lua "github.com/yuin/gopher-lua"
+	"github.com/yuin/gopher-lua/parse"
 )
 
 // LuaRuleEngine implements the RuleEngine interface using Lua scripts
@@ -14,6 +17,8 @@ type LuaRuleEngine struct {
 	luaPool  *LuaStatePool
 	rulesDir string
 	rules    map[string]lua.LValue
+	cache    map[string]*lua.FunctionProto
+	mu       sync.RWMutex
 }
 
 // NewLuaRuleEngine creates a new Lua-based rule engine
@@ -22,6 +27,7 @@ func NewLuaRuleEngine(pool *LuaStatePool, rulesDir string) *LuaRuleEngine {
 		luaPool:  pool,
 		rulesDir: rulesDir,
 		rules:    make(map[string]lua.LValue),
+		cache:    make(map[string]*lua.FunctionProto),
 	}
 }
 
@@ -36,15 +42,19 @@ func (l *LuaRuleEngine) Evaluate(ctx context.Context, ruleName string, data map[
 	state := l.luaPool.Get()
 	defer l.luaPool.Put(state)
 
-	// Load the rule script.
-	rulePath := filepath.Join(l.rulesDir, fmt.Sprintf("%s.lua", ruleName))
-	ruleFile, err := os.ReadFile(rulePath)
+	// Get or compile the script
+	proto, err := l.getOrCreateProto(ruleName)
 	if err != nil {
-		return false, fmt.Errorf("failed to read rule file: %w", err)
+		return false, err
 	}
 
-	if err := state.DoString(string(ruleFile)); err != nil {
-		return false, err
+	// Push the function onto the stack
+	lfunc := state.NewFunctionFromProto(proto)
+	state.Push(lfunc)
+
+	// Execute the script to define functions (like 'check')
+	if err := state.PCall(0, 0, nil); err != nil {
+		return false, fmt.Errorf("failed to execute rule script: %w", err)
 	}
 
 	// Get the 'check' function from the Lua script.
@@ -74,6 +84,46 @@ func (l *LuaRuleEngine) Evaluate(ctx context.Context, ruleName string, data map[
 	}
 
 	return lua.LVAsBool(result), nil
+}
+
+func (l *LuaRuleEngine) getOrCreateProto(ruleName string) (*lua.FunctionProto, error) {
+	l.mu.RLock()
+	proto, ok := l.cache[ruleName]
+	l.mu.RUnlock()
+
+	if ok {
+		return proto, nil
+	}
+
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	// Double-check after acquiring lock
+	if proto, ok := l.cache[ruleName]; ok {
+		return proto, nil
+	}
+
+	// Load the rule script.
+	rulePath := filepath.Join(l.rulesDir, fmt.Sprintf("%s.lua", ruleName))
+	ruleFile, err := os.ReadFile(rulePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read rule file: %w", err)
+	}
+
+	// Compile the script
+	reader := strings.NewReader(string(ruleFile))
+	chunk, err := parse.Parse(reader, ruleName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse lua script: %w", err)
+	}
+
+	compiled, err := lua.Compile(chunk, ruleName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to compile lua script: %w", err)
+	}
+
+	l.cache[ruleName] = compiled
+	return compiled, nil
 }
 
 // RegisterRule registers a new rule with the engine

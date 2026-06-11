@@ -129,3 +129,66 @@ func (f *FileStateStorage) LoadState(ctx context.Context, workflowName string, s
 
 	return &state, nil
 }
+
+// FileRuleStorage implements RuleStorage using the file system
+type FileRuleStorage struct {
+	rulesDir string
+}
+
+// NewFileRuleStorage creates a new file-based rule storage
+func NewFileRuleStorage(rulesDir string) *FileRuleStorage {
+	return &FileRuleStorage{
+		rulesDir: rulesDir,
+	}
+}
+
+// SaveRule saves a rule to a Lua file
+func (f *FileRuleStorage) SaveRule(ctx context.Context, rule Rule) error {
+	filename := fmt.Sprintf("%s.lua", rule.Name)
+	filePath := filepath.Join(f.rulesDir, filename)
+
+	if err := os.WriteFile(filePath, []byte(rule.Content), 0644); err != nil {
+		return fmt.Errorf("failed to write rule file: %w", err)
+	}
+
+	return nil
+}
+
+// LoadRule loads a rule from a Lua file
+func (f *FileRuleStorage) LoadRule(ctx context.Context, name string) (*Rule, error) {
+	filename := fmt.Sprintf("%s.lua", name)
+	filePath := filepath.Join(f.rulesDir, filename)
+
+	content, err := os.ReadFile(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read rule file: %w", err)
+	}
+
+	return &Rule{
+		Name:     name,
+		Language: "Lua",
+		Content:  string(content),
+	}, nil
+}
+
+// ListRules lists all rule files in the directory
+func (f *FileRuleStorage) ListRules(ctx context.Context) ([]Rule, error) {
+	files, err := os.ReadDir(f.rulesDir)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read rules directory: %w", err)
+	}
+
+	var rules []Rule
+	for _, file := range files {
+		if !file.IsDir() && strings.HasSuffix(file.Name(), ".lua") {
+			name := strings.TrimSuffix(file.Name(), ".lua")
+			rule, err := f.LoadRule(ctx, name)
+			if err != nil {
+				continue
+			}
+			rules = append(rules, *rule)
+		}
+	}
+
+	return rules, nil
+}
